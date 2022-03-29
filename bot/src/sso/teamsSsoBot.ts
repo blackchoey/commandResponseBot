@@ -3,7 +3,7 @@ import { showUserInfo } from "./showUserInfo";
 import { SsoDialog } from "./ssoDialog";
 
 export class TeamsSsoBot extends TeamsActivityHandler {
-    private dialog: SsoDialog;
+    private msGraphDialog: SsoDialog;
     private userState: BotState;
     private conversationState: BotState;
     private dialogState: StatePropertyAccessor;
@@ -19,18 +19,18 @@ export class TeamsSsoBot extends TeamsActivityHandler {
         // Create conversation and user state with in-memory storage provider.
         this.conversationState = new ConversationState(memoryStorage);
         this.userState = new UserState(memoryStorage);
-        this.dialog = new SsoDialog(new MemoryStorage(), ["User.Read"]);
+        this.msGraphDialog = new SsoDialog(new MemoryStorage(), ["https://graph.microsoft.com/User.Read"]);
         this.dialogState = this.conversationState.createProperty("DialogState");
 
         // Add commands that requires user authentication
-        this.dialog.addCommand("ShowUserProfile", "show", showUserInfo);
+        this.msGraphDialog.addCommand("ShowUserProfile", "show", showUserInfo);
         // call the `addCommand` function to add more customized commands
 
         this.onMessage(async (context, next) => {
             console.log("Running with Message Activity.");
 
             // Run the Dialog with the new message Activity.
-            await this.dialog.run(context, this.dialogState);
+            await this.msGraphDialog.run(context, this.dialogState);
 
             // By calling next() you ensure that the next BotHandler is run.
             await next();
@@ -52,17 +52,17 @@ export class TeamsSsoBot extends TeamsActivityHandler {
         console.log(
             "Running dialog with signin/verifystate from an Invoke Activity."
         );
-        await this.dialog.run(context, this.dialogState);
+        await this.msGraphDialog.run(context, this.dialogState);
     }
 
     async handleTeamsSigninTokenExchange(
         context: TurnContext,
         query: SigninStateVerificationQuery
     ) {
-        await this.dialog.run(context, this.dialogState);
+        await this.msGraphDialog.run(context, this.dialogState);
     }
 
     async onSignInInvoke(context: TurnContext) {
-        await this.dialog.run(context, this.dialogState);
+        await this.msGraphDialog.run(context, this.dialogState);
     }
 }
